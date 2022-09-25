@@ -8,6 +8,14 @@
     "start": "rescript build -w",
     "test": "npm run build && jest"
   },
+  "files": [
+    "bsconfig.json",
+    "jest.config.js",
+    "src/*.res",
+    "src/*.bs.js",
+    "__tests__/*.res",
+    "__tests__/*.bs.js"
+  ],
   "author": "genesisblockhead",
   "license": "MIT",
   "devDependencies": {
