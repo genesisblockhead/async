@@ -1,8 +1,10 @@
 @new external makeError: string => Js.Exn.t = "Error"
 
 type result<'a> = Belt.Result.t<'a, exn>
-type null<'a> = Js.Nullable.t<'a>
-type nodeback<'a> = (null<Js.Exn.t>, 'a) => unit
+
+type cb<'a> = (. Js.Nullable.t<Js.Exn.t>, 'a) => unit
+type nodeback<'a> = cb<'a> => unit
+
 type callback<'a> = result<'a> => unit
 type t<'a> = callback<'a> => unit
 
@@ -17,12 +19,12 @@ let once: callback<'a> => callback<'a> = cb => {
 }
 
 @val external setImmediate: ('a => unit, 'a) => unit = "setImmediate"
-let unit: 'a => t<'a> = (x, cb) => setImmediate(cb, Ok(x))
+let unit = (x, cb) => setImmediate(cb, Ok(x))
 
 let err = (message, cb) => {
   Js.Global.setTimeout(() => cb(Error(makeError(message) |> Js.Exn.anyToExnInternal)), 0) |> ignore
 }
-let asyncify: ('a => 'b, 'a) => t<'b> = (f, x, cb) =>
+let asyncify = (f, x, cb) =>
   try {
     Belt.Result.Ok(f(x))
   } catch {
@@ -37,7 +39,7 @@ let asyncRef = () => {
   x
 }
 
-let callback: (callback<'a>, t<'a>) => unit = (cb, m) => {
+let callback = (cb, m) => {
   let ticked = asyncRef()
   m(result => {
     if ticked.contents {
@@ -48,7 +50,7 @@ let callback: (callback<'a>, t<'a>) => unit = (cb, m) => {
   })
 }
 
-let map: ('a => 'b, t<'a>) => t<'b> = (f, m, cb) => {
+let map = (f, m, cb) => {
   m |> callback(x => {
     switch x {
     | Error(e) => Error(e)
@@ -63,16 +65,16 @@ let map: ('a => 'b, t<'a>) => t<'b> = (f, m, cb) => {
   })
 }
 
-let flatMap: ('a => t<'b>, t<'a>) => t<'b> = (f: 'a => t<'b>, m: t<'a>, cb: callback<'b>) =>
+let flatMap = (f, m, cb) =>
   m(x => {
     switch x {
     | Error(e) => cb(Error(e))
-    | Ok(m) => f(m, cb)
+    | Ok(x) => f(x, cb)
     }
   })
 
 let rescript = (f, cb) =>
-  f((e, r) =>
+  f((. e, r) =>
     cb(
       switch Js.Nullable.toOption(e) {
       | None => Ok(r)
@@ -82,9 +84,9 @@ let rescript = (f, cb) =>
   )
 
 @val external delay: ('a => unit, int, 'a) => unit = "setTimeout"
-let delay: (int, 'a) => t<'a> = (n, x, cb) => delay(cb, n, Ok(x))
+let delay = (n, x, cb) => delay(cb, n, Ok(x))
 
-let tuple: ((t<'a>, t<'b>)) => t<('a, 'b)> = ((ma, mb), cb) => {
+let tuple = ((ma, mb), cb) => {
   let a = ref(None)
   let b = ref(None)
   let cb = once(cb)
@@ -112,13 +114,12 @@ let tuple: ((t<'a>, t<'b>)) => t<('a, 'b)> = ((ma, mb), cb) => {
   })
 }
 
-let tuple3: ((t<'a>, t<'b>, t<'c>)) => t<('a, 'b, 'c)> = ((ma, mb, mc)) =>
-  tuple((tuple((ma, mb)), mc)) |> map((((a, b), c)) => (a, b, c))
+let tuple3 = ((ma, mb, mc)) => tuple((tuple((ma, mb)), mc)) |> map((((a, b), c)) => (a, b, c))
 
-let tuple4: ((t<'a>, t<'b>, t<'c>, t<'d>)) => t<('a, 'b, 'c, 'd)> = ((ma, mb, mc, md)) =>
+let tuple4 = ((ma, mb, mc, md)) =>
   tuple((tuple((ma, mb)), tuple((mc, md)))) |> map((((a, b), (c, d))) => (a, b, c, d))
 
-let parallel: array<t<'a>> => t<array<'a>> = (tasks, cb) => {
+let parallel = (tasks, cb) => {
   if Js.Array.length(tasks) == 0 {
     cb(Ok([]))
   } else {
@@ -135,16 +136,18 @@ let parallel: array<t<'a>> => t<array<'a>> = (tasks, cb) => {
               if finished.contents == Js.Array.length(tasks) {
                 cb(
                   Ok(
-                    results |> Js.Array.map(result =>
-                      switch result {
-                      | Some(Ok(x)) => x
-                      | _ => Js.Exn.raiseError("this is impossible dont worry")
-                      }
+                    results |> Js.Array.map(
+                      result =>
+                        switch result {
+                        | Some(Ok(x)) => x
+                        | _ => Js.Exn.raiseError("this is impossible dont worry")
+                        },
                     ),
                   ),
                 )
               }
             }
+
           | Error(e) => cb(Error(e))
           }
         }),
@@ -153,7 +156,7 @@ let parallel: array<t<'a>> => t<array<'a>> = (tasks, cb) => {
   }
 }
 
-let series: array<t<'a>> => t<array<'a>> = (tasks, cb) => {
+let series = (tasks, cb) => {
   let length = Js.Array.length(tasks)
   let results = []
   let rec helper = (i, cb) => {
@@ -174,7 +177,7 @@ let series: array<t<'a>> => t<array<'a>> = (tasks, cb) => {
   helper(0, cb)
 }
 
-let race: array<t<'a>> => t<'a> = (tasks, cb) => {
+let race = (tasks, cb) => {
   if Js.Array.length(tasks) == 0 {
     err("no tasks means nobody can win the race", cb)
   }

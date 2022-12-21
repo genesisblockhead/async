@@ -1,6 +1,6 @@
 {
   "name": "@genesisblockhead/async",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
   "scripts": {
     "build": "rescript build -with-deps",
@@ -12,6 +12,7 @@
     "bsconfig.json",
     "jest.config.js",
     "src/*.res",
+    "src/Async.resi",
     "src/*.bs.js",
     "__tests__/*.res",
     "__tests__/*.bs.js"

@@ -51,7 +51,7 @@ function asyncify(f, x, cb) {
       _0: e
     };
   }
-  Curry._1(cb, tmp);
+  return Curry._1(cb, tmp);
 }
 
 function asyncRef(param) {
@@ -66,55 +66,55 @@ function asyncRef(param) {
 
 function callback(cb, m) {
   var ticked = asyncRef(undefined);
-  Curry._1(m, (function (result) {
-          if (ticked.contents) {
-            return Curry._1(cb, result);
-          } else {
-            setImmediate(cb, result);
-            return ;
-          }
-        }));
+  return Curry._1(m, (function (result) {
+                if (ticked.contents) {
+                  return Curry._1(cb, result);
+                } else {
+                  setImmediate(cb, result);
+                  return ;
+                }
+              }));
 }
 
 function map(f, m, cb) {
-  callback((function (x) {
-          var tmp;
-          if (x.TAG === /* Ok */0) {
-            try {
-              var y = Curry._1(f, x._0);
-              tmp = {
-                TAG: /* Ok */0,
-                _0: y
-              };
-            }
-            catch (raw_e){
-              var e = Caml_js_exceptions.internalToOCamlException(raw_e);
-              tmp = {
-                TAG: /* Error */1,
-                _0: e
-              };
-            }
-          } else {
-            tmp = {
-              TAG: /* Error */1,
-              _0: x._0
-            };
-          }
-          Curry._1(cb, tmp);
-        }), m);
+  return callback((function (x) {
+                var tmp;
+                if (x.TAG === /* Ok */0) {
+                  try {
+                    var y = Curry._1(f, x._0);
+                    tmp = {
+                      TAG: /* Ok */0,
+                      _0: y
+                    };
+                  }
+                  catch (raw_e){
+                    var e = Caml_js_exceptions.internalToOCamlException(raw_e);
+                    tmp = {
+                      TAG: /* Error */1,
+                      _0: e
+                    };
+                  }
+                } else {
+                  tmp = {
+                    TAG: /* Error */1,
+                    _0: x._0
+                  };
+                }
+                Curry._1(cb, tmp);
+              }), m);
 }
 
 function flatMap(f, m, cb) {
-  Curry._1(m, (function (x) {
-          if (x.TAG === /* Ok */0) {
-            return Curry._2(f, x._0, cb);
-          } else {
-            return Curry._1(cb, {
-                        TAG: /* Error */1,
-                        _0: x._0
-                      });
-          }
-        }));
+  return Curry._1(m, (function (x) {
+                if (x.TAG === /* Ok */0) {
+                  return Curry._2(f, x._0, cb);
+                } else {
+                  return Curry._1(cb, {
+                              TAG: /* Error */1,
+                              _0: x._0
+                            });
+                }
+              }));
 }
 
 function rescript(f, cb) {
@@ -185,15 +185,15 @@ function tuple(param, cb) {
           }
           go(undefined);
         }));
-  Curry._1(param[1], (function (result) {
-          var match = b.contents;
-          if (match !== undefined) {
-            
-          } else {
-            b.contents = result;
-          }
-          go(undefined);
-        }));
+  return Curry._1(param[1], (function (result) {
+                var match = b.contents;
+                if (match !== undefined) {
+                  
+                } else {
+                  b.contents = result;
+                }
+                go(undefined);
+              }));
 }
 
 function tuple3(param) {
@@ -320,7 +320,7 @@ function series(tasks, cb) {
                                 });
                     }
                     Js_array.push(result._0, results);
-                    helper(i + 1 | 0, cb);
+                    return helper(i + 1 | 0, cb);
                   }));
     } else {
       return Curry._1(cb, {
@@ -329,7 +329,7 @@ function series(tasks, cb) {
                 });
     }
   };
-  helper(0, cb);
+  return helper(0, cb);
 }
 
 function race(tasks, cb) {
@@ -366,22 +366,20 @@ function timeout(t, m, cb) {
               }));
 }
 
-exports.once = once;
-exports.unit = unit;
 exports.err = err;
+exports.unit = unit;
+exports.rescript = rescript;
 exports.asyncify = asyncify;
-exports.asyncRef = asyncRef;
-exports.callback = callback;
 exports.map = map;
 exports.flatMap = flatMap;
-exports.rescript = rescript;
-exports.delay = delay;
 exports.tuple = tuple;
 exports.tuple3 = tuple3;
 exports.tuple4 = tuple4;
+exports.recover = recover;
+exports.delay = delay;
+exports.race = race;
+exports.timeout = timeout;
 exports.parallel = parallel;
 exports.series = series;
-exports.race = race;
-exports.recover = recover;
-exports.timeout = timeout;
+exports.callback = callback;
 /* No side effect */

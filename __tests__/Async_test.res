@@ -1,5 +1,9 @@
 open Jest
 
+@module("fs") @val
+external readFile: (string, @as("utf-8") _, (. Js.Nullable.t<Js.Exn.t>, string) => unit) => unit =
+  "readFile"
+
 describe("Async", () => {
   open Expect
   let shouldError = (m, done) =>
@@ -17,38 +21,61 @@ describe("Async", () => {
     })
   }
 
+  describe("err", () => {
+    testAsync("err", Async.err("sorry") |> shouldError)
+  })
+
   describe("unit", () => {
-    testAsync("unit", done =>
-      Async.unit(7, result => {
-        done(expect(result)->toEqual(Ok(7)))
-      })
+    testAsync(
+      "unit",
+      done =>
+        Async.unit(7) |> Async.callback(
+          result => {
+            done(expect(result)->toEqual(Ok(7)))
+          },
+        ),
     )
 
-    testAsync("unit 2", done =>
-      Async.unit(7) |> Async.callback(result => {
-        done(expect(result)->toEqual(Ok(7)))
-      })
+    testAsync(
+      "unit 2",
+      done =>
+        Async.unit(7) |> Async.callback(
+          result => {
+            done(expect(result)->toEqual(Ok(7)))
+          },
+        ),
     )
 
     testAsync("unit 3", Async.unit(7) |> shouldEqual(7))
   })
 
-  describe("err", () => {
-    testAsync("err", Async.err("sorry") |> shouldError)
+  describe("rescript", () => {
+    let readFile = filename => readFile(filename) |> Async.rescript
+    testAsync(
+      "readfile should work",
+      readFile("README.md") |> Async.map(Js.String.trim) |> shouldEqual("todo: add readme"),
+    )
+
+    testAsync("readfile should error on nonexistent file", readFile("doesnt exist") |> shouldError)
   })
 
   describe("map", () => {
     testAsync("map", Async.unit(49) |> Async.map(n => n / 7) |> shouldEqual(7))
-    testAsync("map with error", done => {
-      Async.unit(49)
-      |> Async.map(n => n / 0)
-      |> Async.callback(result => {
-        switch result {
-        | Ok(_) => fail("OK not expected")
-        | Error(_) => pass
-        } |> done
-      })
-    })
+    testAsync(
+      "map with error",
+      done => {
+        Async.unit(49)
+        |> Async.map(n => n / 0)
+        |> Async.callback(
+          result => {
+            switch result {
+            | Ok(_) => fail("OK not expected")
+            | Error(_) => pass
+            } |> done
+          },
+        )
+      },
+    )
     testAsync("map with error v2", Async.unit(49) |> Async.map(n => n / 0) |> shouldError)
   })
 
@@ -69,6 +96,14 @@ describe("Async", () => {
     testAsync(
       "further delayed",
       Async.delay(200, "further delayed") |> shouldEqual("further delayed"),
+    )
+    testAsync(
+      "delay doesnt timeout",
+      Async.delay(100, "delayed") |> Async.timeout(200) |> shouldEqual("delayed"),
+    )
+    testAsync(
+      "delay doesnt timeout",
+      Async.delay(100, "delayed") |> Async.timeout(10) |> shouldError,
     )
   })
 
@@ -143,5 +178,44 @@ describe("Async", () => {
       "timeout",
       Async.timeout(100, Async.delay(50, "just in time")) |> shouldEqual("just in time"),
     )
+  })
+
+  describe("parallel", () => {
+    testAsync(
+      "parallel times out",
+      Async.parallel([Async.unit(10), Async.delay(500, 20), Async.delay(1000, 30)])
+      |> Async.timeout(600)
+      |> shouldError,
+    )
+    testAsync(
+      "parallel doesnt timeout",
+      Async.parallel([Async.unit(10), Async.delay(500, 20), Async.delay(1000, 30)])
+      |> Async.timeout(1100)
+      |> shouldEqual([10, 20, 30]),
+    )
+    testAsync("parallel works with an empty list", Async.parallel([]) |> shouldEqual([]))
+  })
+
+  describe("series", () => {
+    testAsync(
+      "series times out",
+      Async.series([Async.unit(10), Async.delay(500, 20), Async.delay(1000, 30)])
+      |> Async.timeout(1100)
+      |> shouldError,
+    )
+    testAsync(
+      "series doesnt timeout",
+      Async.series([Async.unit(10), Async.delay(500, 20), Async.delay(1000, 30)])
+      |> Async.timeout(1600)
+      |> shouldEqual([10, 20, 30]),
+    )
+    testAsync("series works with an empty list", Async.series([]) |> shouldEqual([]))
+  })
+
+  describe("asyncify", () => {
+    let f = Async.asyncify(x => x / 0)
+    let g = Async.asyncify(x => x / 2)
+    testAsync("asyncify errors", Async.unit(10) |> Async.flatMap(f) |> shouldError)
+    testAsync("asyncify doesnt error", Async.unit(10) |> Async.flatMap(g) |> shouldEqual(5))
   })
 })
