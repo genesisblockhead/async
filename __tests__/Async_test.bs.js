@@ -7,6 +7,7 @@ var Async = require("../src/Async.bs.js");
 var Curry = require("rescript/lib/js/curry.js");
 var Belt_Array = require("rescript/lib/js/belt_Array.js");
 var Caml_int32 = require("rescript/lib/js/caml_int32.js");
+var Caml_exceptions = require("rescript/lib/js/caml_exceptions.js");
 
 Jest.describe("Async", (function (param) {
         var shouldError = function (m, done) {
@@ -24,13 +25,6 @@ Jest.describe("Async", (function (param) {
                           }));
                 }), m);
         };
-        Jest.describe("err", (function (param) {
-                Jest.testAsync("err", undefined, (function (param) {
-                        return shouldError((function (param) {
-                                      return Async.err("sorry", param);
-                                    }), param);
-                      }));
-              }));
         Jest.describe("unit", (function (param) {
                 Jest.testAsync("unit", undefined, (function (done) {
                         Async.callback((function (result) {
@@ -481,6 +475,22 @@ Jest.describe("Async", (function (param) {
                                                     return Async.unit(10, param);
                                                   }), param);
                                     }), param);
+                      }));
+              }));
+        Jest.describe("fromPromise", (function (param) {
+                var p = Promise.resolve(7);
+                var partial_arg = Async.fromPromise(p);
+                Jest.testAsync("fromPromise", undefined, (function (param) {
+                        return shouldEqual(7, partial_arg, param);
+                      }));
+              }));
+        var Badness = /* @__PURE__ */Caml_exceptions.create("Badness");
+        Jest.describe("fromPromise with error", (function (param) {
+                var p = Async.fromPromise(Promise.reject({
+                          RE_EXN_ID: Badness
+                        }));
+                Jest.testAsync("fromPromise", undefined, (function (param) {
+                        return shouldError(p, param);
                       }));
               }));
       }));

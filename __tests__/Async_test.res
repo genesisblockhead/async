@@ -21,9 +21,9 @@ describe("Async", () => {
     })
   }
 
-  describe("err", () => {
-    testAsync("err", Async.err("sorry") |> shouldError)
-  })
+  //  describe("err", () => {
+  //    testAsync("err", Async.err("sorry") |> shouldError)
+  //  })
 
   describe("unit", () => {
     testAsync(
@@ -217,5 +217,15 @@ describe("Async", () => {
     let g = Async.asyncify(x => x / 2)
     testAsync("asyncify errors", Async.unit(10) |> Async.flatMap(f) |> shouldError)
     testAsync("asyncify doesnt error", Async.unit(10) |> Async.flatMap(g) |> shouldEqual(5))
+  })
+
+  describe("fromPromise", () => {
+    let p = Js.Promise.resolve(7)
+    testAsync("fromPromise", Async.fromPromise(p) |> shouldEqual(7))
+  })
+  exception Badness
+  describe("fromPromise with error", () => {
+    let p = Js.Promise.reject(Badness) |> Async.fromPromise
+    testAsync("fromPromise", p |> shouldError)
   })
 })

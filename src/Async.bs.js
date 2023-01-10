@@ -5,6 +5,8 @@ var Curry = require("rescript/lib/js/curry.js");
 var Js_exn = require("rescript/lib/js/js_exn.js");
 var Js_array = require("rescript/lib/js/js_array.js");
 var Caml_array = require("rescript/lib/js/caml_array.js");
+var Js_promise = require("rescript/lib/js/js_promise.js");
+var Caml_exceptions = require("rescript/lib/js/caml_exceptions.js");
 var Caml_js_exceptions = require("rescript/lib/js/caml_js_exceptions.js");
 
 function once(cb) {
@@ -366,6 +368,31 @@ function timeout(t, m, cb) {
               }));
 }
 
+var PromiseError = /* @__PURE__ */Caml_exceptions.create("Async.PromiseError");
+
+function fromPromise(p) {
+  var p$1 = Js_promise.$$catch((function (e) {
+          console.log("here we are");
+          return Promise.resolve({
+                      TAG: /* Error */1,
+                      _0: {
+                        RE_EXN_ID: PromiseError,
+                        _1: e
+                      }
+                    });
+        }), Js_promise.then_((function (x) {
+              return Promise.resolve({
+                          TAG: /* Ok */0,
+                          _0: x
+                        });
+            }), p));
+  return function (cb) {
+    Js_promise.then_((function (x) {
+            return Promise.resolve(Curry._1(cb, x));
+          }), p$1);
+  };
+}
+
 exports.err = err;
 exports.unit = unit;
 exports.rescript = rescript;
@@ -379,6 +406,7 @@ exports.recover = recover;
 exports.delay = delay;
 exports.race = race;
 exports.timeout = timeout;
+exports.fromPromise = fromPromise;
 exports.parallel = parallel;
 exports.series = series;
 exports.callback = callback;

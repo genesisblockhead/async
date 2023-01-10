@@ -22,6 +22,8 @@ let delay: (int, 'a) => t<'a>
 let race: array<t<'a>> => t<'a>
 let timeout: (int, t<'a>) => t<'a>
 
+let fromPromise: Js.Promise.t<'a> => t<'a>
+
 let parallel: array<t<'a>> => t<array<'a>>
 let series: array<t<'a>> => t<array<'a>>
 

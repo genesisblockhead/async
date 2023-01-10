@@ -204,3 +204,15 @@ let timeout = (t, m, cb) => {
     cb(x)
   })
 }
+
+exception PromiseError(Js.Promise.error)
+
+let fromPromise = p => {
+  let p =
+    p
+    |> Js.Promise.then_(x => Js.Promise.resolve(Ok(x)))
+    |> Js.Promise.catch(e => {
+      Js.Promise.resolve(Error(PromiseError(e)))
+    })
+  cb => p |> Js.Promise.then_(x => cb(x)->Js.Promise.resolve) |> ignore
+}
