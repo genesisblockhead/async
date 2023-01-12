@@ -372,7 +372,6 @@ var PromiseError = /* @__PURE__ */Caml_exceptions.create("Async.PromiseError");
 
 function fromPromise(p) {
   var p$1 = Js_promise.$$catch((function (e) {
-          console.log("here we are");
           return Promise.resolve({
                       TAG: /* Error */1,
                       _0: {
@@ -388,7 +387,7 @@ function fromPromise(p) {
             }), p));
   return function (cb) {
     Js_promise.then_((function (x) {
-            return Promise.resolve(Curry._1(cb, x));
+            return Promise.resolve((setImmediate(cb, x), undefined));
           }), p$1);
   };
 }

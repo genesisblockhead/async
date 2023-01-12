@@ -214,5 +214,5 @@ let fromPromise = p => {
     |> Js.Promise.catch(e => {
       Js.Promise.resolve(Error(PromiseError(e)))
     })
-  cb => p |> Js.Promise.then_(x => cb(x)->Js.Promise.resolve) |> ignore
+  cb => p |> Js.Promise.then_(x => setImmediate(cb, x)->Js.Promise.resolve) |> ignore
 }
