@@ -9,6 +9,8 @@ var Belt_Array = require("rescript/lib/js/belt_Array.js");
 var Caml_int32 = require("rescript/lib/js/caml_int32.js");
 var Caml_exceptions = require("rescript/lib/js/caml_exceptions.js");
 
+var TestException = /* @__PURE__ */Caml_exceptions.create("Async_test.TestException");
+
 Jest.describe("Async", (function (param) {
         var shouldError = function (m, done) {
           Async.callback((function (result) {
@@ -25,6 +27,24 @@ Jest.describe("Async", (function (param) {
                           }));
                 }), m);
         };
+        Jest.describe("err", (function (param) {
+                Jest.testAsync("err", undefined, (function (param) {
+                        return shouldError((function (param) {
+                                      return Async.err("sorry", param);
+                                    }), param);
+                      }));
+              }));
+        Jest.describe("exn", (function (param) {
+                var partial_arg = {
+                  RE_EXN_ID: TestException
+                };
+                var partial_arg$1 = function (param) {
+                  return Async.exn(partial_arg, param);
+                };
+                Jest.testAsync("exn", undefined, (function (param) {
+                        return shouldError(partial_arg$1, param);
+                      }));
+              }));
         Jest.describe("unit", (function (param) {
                 Jest.testAsync("unit", undefined, (function (done) {
                         Async.callback((function (result) {
@@ -495,4 +515,5 @@ Jest.describe("Async", (function (param) {
               }));
       }));
 
+exports.TestException = TestException;
 /*  Not a pure module */

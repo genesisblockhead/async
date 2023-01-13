@@ -4,6 +4,7 @@ type cb<'a> = (. Js.Nullable.t<Js.Exn.t>, 'a) => unit
 type nodeback<'a> = (cb<'a>) => unit
 
 let err: string => t<'a>
+let exn: exn => t<'a>
 let unit: 'a => t<'a>
 
 let rescript: nodeback<'a> => t<'a>

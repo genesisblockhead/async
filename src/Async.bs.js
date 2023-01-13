@@ -36,6 +36,13 @@ function err(message, cb) {
       });
 }
 
+function exn(e, cb) {
+  setImmediate(cb, {
+        TAG: /* Error */1,
+        _0: e
+      });
+}
+
 function asyncify(f, x, cb) {
   var tmp;
   try {
@@ -403,6 +410,7 @@ function raiseIfError(m) {
 }
 
 exports.err = err;
+exports.exn = exn;
 exports.unit = unit;
 exports.rescript = rescript;
 exports.asyncify = asyncify;

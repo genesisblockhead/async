@@ -4,6 +4,8 @@ open Jest
 external readFile: (string, @as("utf-8") _, (. Js.Nullable.t<Js.Exn.t>, string) => unit) => unit =
   "readFile"
 
+exception TestException
+
 describe("Async", () => {
   open Expect
   let shouldError = (m, done) =>
@@ -14,16 +16,15 @@ describe("Async", () => {
       } |> done
     })
 
-  let shouldEqual = (x, m, done) => {
+  let shouldEqual = (x, m, done) =>
     m |> Async.callback(result => {
       ()
       done(expect(result)->toEqual(Ok(x)))
     })
-  }
 
-  //  describe("err", () => {
-  //    testAsync("err", Async.err("sorry") |> shouldError)
-  //  })
+  describe("err", () => testAsync("err", Async.err("sorry") |> shouldError))
+
+  describe("exn", () => testAsync("exn", Async.exn(TestException) |> shouldError))
 
   describe("unit", () => {
     testAsync(

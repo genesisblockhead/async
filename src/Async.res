@@ -22,6 +22,7 @@ let once = cb => {
 let unit = (x, cb) => setImmediate(cb, Ok(x))
 
 let err = (message, cb) => setImmediate(cb, Error(message->makeError->Js.Exn.anyToExnInternal))
+let exn = (e, cb) => setImmediate(cb, Error(e))
 let asyncify = (f, x, cb) =>
   try {
     Belt.Result.Ok(f(x))
