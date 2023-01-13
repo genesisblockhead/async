@@ -231,4 +231,24 @@ describe("Async", () => {
     let p = Js.Promise.reject(Badness) |> Async.fromPromise
     testAsync("fromPromise", p |> shouldError)
   })
+
+  describe("retry", () => {
+    let m = number =>
+      Async.unit(number) |> Async.flatMap(
+        m => {
+          let n = Js.Math.random()
+          if n < 0.001 {
+            Async.unit(m)
+          } else {
+            Async.err("too large")
+          }
+        },
+      )
+
+    testAsync("should error", m(100) |> shouldError)
+    testAsync(
+      "shouldnt error when we retry",
+      m(100) |> Async.retryWithBackoff(~backoff=_ => 1, ~n=10000) |> shouldEqual(100),
+    )
+  })
 })

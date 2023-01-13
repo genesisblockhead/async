@@ -513,6 +513,36 @@ Jest.describe("Async", (function (param) {
                         return shouldError(p, param);
                       }));
               }));
+        Jest.describe("retry", (function (param) {
+                var m = function (number) {
+                  return function (param) {
+                    return Async.flatMap((function (m) {
+                                  var n = Math.random();
+                                  if (n < 0.001) {
+                                    return function (param) {
+                                      return Async.unit(m, param);
+                                    };
+                                  } else {
+                                    return function (param) {
+                                      return Async.err("too large", param);
+                                    };
+                                  }
+                                }), (function (param) {
+                                  return Async.unit(number, param);
+                                }), param);
+                  };
+                };
+                var partial_arg = m(100);
+                Jest.testAsync("should error", undefined, (function (param) {
+                        return shouldError(partial_arg, param);
+                      }));
+                var partial_arg$1 = Async.retryWithBackoff((function (param) {
+                        return 1;
+                      }), 10000, m(100));
+                Jest.testAsync("shouldnt error when we retry", undefined, (function (param) {
+                        return shouldEqual(100, partial_arg$1, param);
+                      }));
+              }));
       }));
 
 exports.TestException = TestException;
