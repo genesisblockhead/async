@@ -53,7 +53,9 @@ describe("Async", () => {
     let readFile = filename => readFile(filename) |> Async.rescript
     testAsync(
       "readfile should work",
-      readFile("README.md") |> Async.map(Js.String.trim) |> shouldEqual("todo: add readme"),
+      readFile("__tests__/test-data.txt")
+      |> Async.map(Js.String.trim)
+      |> shouldEqual("chancellor on brink"),
     )
 
     testAsync("readfile should error on nonexistent file", readFile("doesnt exist") |> shouldError)

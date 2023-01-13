@@ -55,7 +55,7 @@ Jest.describe("Async", (function (param) {
         Jest.describe("rescript", (function (param) {
                 var partial_arg = function (param) {
                   return Async.rescript((function (param) {
-                                Fs.readFile("README.md", "utf-8", param);
+                                Fs.readFile("__tests__/test-data.txt", "utf-8", param);
                               }), param);
                 };
                 var partial_arg$1 = function (param) {
@@ -64,7 +64,7 @@ Jest.describe("Async", (function (param) {
                               }), partial_arg, param);
                 };
                 Jest.testAsync("readfile should work", undefined, (function (param) {
-                        return shouldEqual("todo: add readme", partial_arg$1, param);
+                        return shouldEqual("chancellor on brink", partial_arg$1, param);
                       }));
                 var partial_arg$2 = function (param) {
                   return Async.rescript((function (param) {
