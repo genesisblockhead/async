@@ -3,6 +3,7 @@
 
 var Curry = require("rescript/lib/js/curry.js");
 var Js_exn = require("rescript/lib/js/js_exn.js");
+var Js_math = require("rescript/lib/js/js_math.js");
 var Js_array = require("rescript/lib/js/js_array.js");
 var Caml_array = require("rescript/lib/js/caml_array.js");
 var Js_promise = require("rescript/lib/js/js_promise.js");
@@ -409,6 +410,50 @@ function raiseIfError(m) {
               }), m);
 }
 
+var RetriesInvalid = /* @__PURE__ */Caml_exceptions.create("Async.RetriesInvalid");
+
+function retryWithBackoff(backoff, iOpt, n, m) {
+  var i = iOpt !== undefined ? iOpt : 0;
+  return function (param) {
+    return recover((function (e) {
+                  var i$1 = i + 1 | 0;
+                  if (i$1 >= n) {
+                    return function (param) {
+                      return exn(e, param);
+                    };
+                  }
+                  var d = Curry._1(backoff, i$1);
+                  var partial_arg = i$1;
+                  var partial_arg$1 = function (param) {
+                    return retryWithBackoff(backoff, partial_arg, n, param);
+                  };
+                  return function (param) {
+                    return flatMap(partial_arg$1, (function (param) {
+                                  return delay(d, m, param);
+                                }), param);
+                  };
+                }), m, param);
+  };
+}
+
+function retryWithBackoff$1(backoffOpt, n, m) {
+  var backoff = backoffOpt !== undefined ? backoffOpt : (function (param) {
+        var delay = 1000;
+        var rawDelay = Math.pow(2.0, param);
+        return Js_math.ceil_int(delay * (0.5 + Math.random()) * rawDelay);
+      });
+  if (n >= 1) {
+    return retryWithBackoff(backoff, 0, n, m);
+  }
+  var partial_arg = {
+    RE_EXN_ID: RetriesInvalid,
+    _1: n
+  };
+  return function (param) {
+    return exn(partial_arg, param);
+  };
+}
+
 exports.err = err;
 exports.exn = exn;
 exports.unit = unit;
@@ -428,4 +473,5 @@ exports.parallel = parallel;
 exports.series = series;
 exports.callback = callback;
 exports.raiseIfError = raiseIfError;
+exports.retryWithBackoff = retryWithBackoff$1;
 /* No side effect */

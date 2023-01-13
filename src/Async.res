@@ -223,3 +223,29 @@ let raiseIfError = m =>
     | Ok(_) => ()
     }
   )
+
+exception RetriesInvalid(int)
+let exponential = (delay, i) => {
+  let rawDelay = Js.Math.pow_float(~base=2.0, ~exp=float_of_int(i))
+  Js.Math.ceil_int(float_of_int(delay) *. (0.5 +. Js.Math.random()) *. rawDelay)
+}
+
+let rec retryWithBackoff = (~backoff, ~i=0, ~n, m) => {
+  m |> recover(e => {
+    let i = i + 1
+    if i < n {
+      let d = backoff(i)
+      delay(d, m) |> flatMap(retryWithBackoff(~backoff, ~i, ~n))
+    } else {
+      exn(e)
+    }
+  })
+}
+
+let retryWithBackoff = (~backoff=exponential(1000), ~n, m) => {
+  if n < 1 {
+    exn(RetriesInvalid(n))
+  } else {
+    retryWithBackoff(~backoff, ~i=0, ~n, m)
+  }
+}
