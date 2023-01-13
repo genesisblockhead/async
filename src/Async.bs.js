@@ -390,6 +390,18 @@ function fromPromise(p) {
   };
 }
 
+function raiseIfError(m) {
+  return callback((function (result) {
+                if (result.TAG === /* Ok */0) {
+                  return ;
+                }
+                var e = result._0;
+                setImmediate((function (param) {
+                        throw e;
+                      }), undefined);
+              }), m);
+}
+
 exports.err = err;
 exports.unit = unit;
 exports.rescript = rescript;
@@ -407,4 +419,5 @@ exports.fromPromise = fromPromise;
 exports.parallel = parallel;
 exports.series = series;
 exports.callback = callback;
+exports.raiseIfError = raiseIfError;
 /* No side effect */

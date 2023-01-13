@@ -214,3 +214,11 @@ let fromPromise = p => {
     })
   cb => p |> Js.Promise.then_(x => setImmediate(cb, x)->Js.Promise.resolve) |> ignore
 }
+
+let raiseIfError = m =>
+  m |> callback(result =>
+    switch result {
+    | Error(e) => setImmediate(() => raise(e), ())
+    | Ok(_) => ()
+    }
+  )

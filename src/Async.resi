@@ -28,3 +28,4 @@ let parallel: array<t<'a>> => t<array<'a>>
 let series: array<t<'a>> => t<array<'a>>
 
 let callback: (Belt.Result.t<'a, exn> => unit, t<'a>) => unit
+let raiseIfError: t<'a> => unit
