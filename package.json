@@ -1,12 +1,14 @@
 {
   "name": "@genesisblockhead/async",
-  "version": "1.0.2",
+  "version": "0.0.0-development",
   "description": "",
   "scripts": {
     "build": "rescript build -with-deps",
     "clean": "rescript clean",
+    "commit": "cz",
     "start": "rescript build -w",
-    "test": "npm run build && jest"
+    "test": "npm run build && jest",
+    "semantic-release": "semantic-release"
   },
   "files": [
     "bsconfig.json",
@@ -21,7 +23,19 @@
   "license": "MIT",
   "devDependencies": {
     "@glennsl/rescript-jest": "^0.9.2",
+    "commitizen": "^4.2.6",
+    "cz-conventional-changelog": "^3.3.0",
     "jest": "^29.0.3",
-    "rescript": "^10.0.1"
+    "rescript": "^10.0.1",
+    "semantic-release": "^20.0.2"
+  },
+  "config": {
+    "commitizen": {
+      "path": "./node_modules/cz-conventional-changelog"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/genesisblockhead/async.git"
   }
 }
