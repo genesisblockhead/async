@@ -8,7 +8,7 @@ type nodeback<'a> = cb<'a> => unit
 type callback<'a> = result<'a> => unit
 type t<'a> = callback<'a> => unit
 
-let once: callback<'a> => callback<'a> = cb => {
+let once = cb => {
   let called = ref(false)
   x => {
     if !called.contents {
@@ -21,9 +21,7 @@ let once: callback<'a> => callback<'a> = cb => {
 @val external setImmediate: ('a => unit, 'a) => unit = "setImmediate"
 let unit = (x, cb) => setImmediate(cb, Ok(x))
 
-let err = (message, cb) => {
-  Js.Global.setTimeout(() => cb(Error(makeError(message) |> Js.Exn.anyToExnInternal)), 0) |> ignore
-}
+let err = (message, cb) => setImmediate(cb, Error(message->makeError->Js.Exn.anyToExnInternal))
 let asyncify = (f, x, cb) =>
   try {
     Belt.Result.Ok(f(x))

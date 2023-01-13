@@ -30,12 +30,10 @@ function unit(x, cb) {
 }
 
 function err(message, cb) {
-  setTimeout((function (param) {
-          Curry._1(cb, {
-                TAG: /* Error */1,
-                _0: Caml_js_exceptions.internalToOCamlException(new Error(message))
-              });
-        }), 0);
+  setImmediate(cb, {
+        TAG: /* Error */1,
+        _0: Caml_js_exceptions.internalToOCamlException(new Error(message))
+      });
 }
 
 function asyncify(f, x, cb) {
